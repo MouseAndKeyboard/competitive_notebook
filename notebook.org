@@ -1,0 +1,163 @@
+#+TITLE: Notebook
+
+* Computational Geometry
+
+** 2D Vector operations
+*** Vector addition/subtraction
+
+\( (x_1, y_1) \pm (x_2, y_2) = (x_1 \pm x_2, y_1 \pm y_2) \)
+
+#+NAME: vector-add
+#+BEGIN_SRC C++
+template <typename T>
+Vec<T> Vec<T>::add(Vec<T> a)
+{
+    Vec<T> res(this.dim);
+    for (int i = 0; i < this->dim; ++i)
+    {
+        res->ary[i] = this->ary[i] + a.ary[i];
+    }
+}
+#+END_SRC
+
+#+NAME: vector-sub
+#+BEGIN_SRC C++
+template <typename T>
+Vec<T> Vec<T>::sub(Vec<T> a)
+{
+    Vec<T> res(this->dim);
+    for (int i = 0; i < this->dim; ++i)
+    {
+        res.ary[i] = this->ary[i] - a.ary[i];
+    }
+}
+#+END_SRC
+
+*** Vector norm/magnitude
+\( |(x_1, y_1)| = \sqrt{ x_1^2 + y_1^2 }\)
+
+Note:
+To minimise floating point operations:
+Simply use \( |(x_1, y_1)|^2 = x_1^2 + y_1^2 \) when possible. If
+you need the exact length, you can take
+the square root at the end.
+
+#+NAME: vector-l2-sq
+#+BEGIN_SRC C++
+template<typename T>
+T Vec<T>::l2_sq(void)
+{
+    T sq_sum;
+    for (int i = 0; i < this->dim; ++i)
+    {
+        sq_sum += this->ary[i] * this->ary[i];
+    }
+    return sq_sum;
+}
+#+END_SRC
+
+#+RESULTS: vector-l2-sq
+
+*** Vector dot product
+The dot product between \( \mathbf{x} \) and \( \mathbf{y}\):
+\( \mathbf{x}^\intercal \mathbf{y} = \sum_{i=1}^n \mathbf{x}_i \mathbf{y}_i \)
+
+#+NAME: vector-dot
+#+BEGIN_SRC C++
+template<typename T>
+T Vec<T>::dot(Vec a)
+{
+    T sq_sum;
+    for (int i = 0; i < this->dim; ++i)
+    {
+        sq_sum += this->ary[i] * a.ary[i];
+    }
+    return sq_sum;
+}
+#+END_SRC
+
+#+RESULTS: vector-dot
+
+*** Vector cross product
+The cross product between \( \mathbf{x} \) and \( \mathbf{y} \)
+
+#+NAME: vector-crs
+#+BEGIN_SRC C++
+template <typename T>
+Vec<T> Vec<T>::crs_3d(Vec<T> a)
+{
+    Vec<T> res = Vec(3);
+    res.ary[0] = this->ary[1] * a.ary[2] - this->ary[2] * a.ary[1];
+    res.ary[1] = this->ary[2] * a.ary[0] - this->ary[0] * a.ary[2];
+    res.ary[2] = this->ary[0] * a.ary[1] - this->ary[1] * a.ary[0];
+
+    return res;
+}
+#+END_SRC
+
+#+RESULTS: vector-crs
+
+** Library
+#+BEGIN_SRC C++ :noweb yes :tangle compgeom.cpp
+template <typename T>
+class Vec {
+    public:
+        T* ary;
+        int dim;
+
+        Vec(T arr[], int s);
+        Vec(int s);
+        Vec add(Vec a);
+        Vec sub(Vec a);
+        T l2_sq(void); // squared L2 norm
+        T dot(Vec a); // dot product
+        Vec crs_3d(Vec a); // true cross product of two vectors in 3-space
+};
+
+template<typename T>
+Vec<T>::Vec(T arr[], int s)
+{
+    this->ary = new T[s];
+    this->dim = s;
+    for (int i=0; i < s; i++)
+    {
+        this->ary[i] = arr[i];
+    }
+}
+
+template<typename T>
+Vec<T>::Vec(int s)
+{
+    this->ary = new T[s];
+    this->dim = s;
+}
+
+<<vector-add>>
+<<vector-sub>>
+<<vector-l2-sq>>
+<<vector-dot>>
+<<vector-crs>>
+
+#include <iostream>
+int main()
+{
+    float a_elems[3] = { 1.0, 3.5, 1.5 };
+    float b_elems[3] = { -0.5, 1.5, 1.5 };
+
+    Vec<float> a = Vec<float>(a_elems, 3);
+    Vec<float> b = Vec<float>(b_elems, 3);
+
+    Vec<float> x = a.crs_3d(b);
+
+    for (int i = 0; i < 3; i++)
+        {
+            std::cout << x.ary[i] << " ";
+        }
+
+    std::cout << "\n" << x.l2_sq() << "\n";
+
+    return 0;
+}
+#+END_SRC
+
+#+RESULTS:
