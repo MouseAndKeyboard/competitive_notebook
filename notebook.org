@@ -98,7 +98,7 @@ Vec<T> Vec<T>::crs_3d(Vec<T> a)
 #+RESULTS: vector-crs
 
 ** Library
-#+BEGIN_SRC C++ :noweb yes :tangle compgeom.cpp
+#+BEGIN_SRC C++ :noweb yes :tangle compgeom.h :main no
 template <typename T>
 class Vec {
     public:
@@ -113,6 +113,10 @@ class Vec {
         T dot(Vec a); // dot product
         Vec crs_3d(Vec a); // true cross product of two vectors in 3-space
 };
+#+END_SRC
+
+#+BEGIN_SRC C++ :noweb yes :tangle compgeom.cpp :main no
+#include "compgeom.h"
 
 template<typename T>
 Vec<T>::Vec(T arr[], int s)
@@ -137,7 +141,10 @@ Vec<T>::Vec(int s)
 <<vector-l2-sq>>
 <<vector-dot>>
 <<vector-crs>>
+#+END_SRC
 
+#+BEGIN_SRC C++ :tangle testing.cpp
+#include "compgeom.h"
 #include <iostream>
 int main()
 {
@@ -160,4 +167,4 @@ int main()
 }
 #+END_SRC
 
-#+RESULTS:
+
