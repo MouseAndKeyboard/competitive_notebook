@@ -2,6 +2,103 @@
 
 * Computational Geometry
 
+** Rational Number Class
+*** Rescale denominator
+Set the denominator to a new value, scale the numerator appropriately.
+
+*WARNING:* newval should either or divide or be divided by the denominator
+otherwise the numerator will be incorrectly scaled.
+
+#+NAME: rational-rescale
+#+BEGIN_SRC C++
+template<typename T, typename U>
+void Rational<T,U>::rescale_denom(U newval)
+{
+    U scalefactor;
+    if (newval >= denom)
+    {
+        scalefactor = newval / denom;
+        numer *= scalefactor;
+    }
+    else
+    {
+        scalefactor = denom / newval;
+        numer /= scalefactor;
+    }
+    return;
+}
+#+END_SRC
+*** Rational add
+Adds two fractions together, denominator will be the product of the
+denominators of the inputs.
+
+#+NAME: rational-add
+#+BEGIN_SRC C++
+template<typename T, typename U>
+Rational<T,U> Rational<T,U>::operator+(Rational<T,U> const &obj)
+{
+    if (this->denom == obj->denom)
+    {
+        return Rational(this->numer + obj->numer, this->denom);
+    }
+    else {
+        return Rational(this->numer * obj->denom + this->denom * obj->numer,
+                        this->denom * obj->denom);
+    }
+}
+#+END_SRC
+
+*** Library
+#+BEGIN_SRC C++ :tangle rational.h :main no
+template <typename T, typename U>
+class Rational {
+    private:
+        T numer;
+        U denom;
+
+    public:
+        Rational(T n, U d);
+        T get_numerator(void);
+        U get_denominator(void);
+        void rescale_denom(U newval);
+        void simplify(void);
+        Rational operator+(Rational const &obj);
+        Rational operator-(Rational const &obj);
+        Rational operator*(Rational const &obj);
+        Rational operator/(Rational const &obj);
+};
+#+END_SRC
+
+#+BEGIN_SRC C++ :noweb yes :tangle rational.cpp :main no
+#include "rational.h"
+
+template<typename T, typename U>
+Rational<T, U>::Rational(T n, U d)
+{
+    this->numer = n;
+    this->denom = d;
+}
+
+template<typename T, typename U>
+T Rational<T,U>::get_numerator(void)
+{
+    return this->numer;
+}
+
+template<typename T, typename U>
+U Rational<T,U>::get_denominator(void)
+{
+    return this->denom;
+}
+
+<<rational-rescale>>
+<<rational-simp>>
+<<rational-add>>
+<<rational-sub>>
+<<rational-mult>>
+<<rational-div>>
+#+END_SRC
+
 ** 2D Vector operations
 *** Vector addition/subtraction
 
@@ -97,8 +194,8 @@ Vec<T> Vec<T>::crs_3d(Vec<T> a)
 
 #+RESULTS: vector-crs
 
-** Library
-#+BEGIN_SRC C++ :noweb yes :tangle compgeom.h :main no
+*** Library
+#+BEGIN_SRC C++ :tangle compgeom.h :main no
 template <typename T>
 class Vec {
     public:
