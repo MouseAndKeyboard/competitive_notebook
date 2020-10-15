@@ -1,8 +1,48 @@
 #+TITLE: Notebook
 
 * Computational Geometry
-
 ** Rational Number Class
+*** Simplify
+#+NAME: rational-simp
+After simplification, if the number is negative, the numerator
+will be the negative value.
+#+BEGIN_SRC C++
+#include <algorithm>
+
+template<typename T, typename U>
+void Rational<T,U>::simplify(void) {
+    // Fixes negative denominators.
+    if (this->denom < 0)
+    {
+        this->numer *= -1;
+        this->denom *= -1;
+    }
+
+    // Simplifies Rational Numbers.
+    int den = std::__gcd(this->numer, this->denom);
+
+    this->numer /= den;
+    this->denom /= den;
+}
+#+END_SRC
+
+**** Test
+#+NAME: test-rational-simp
+#+BEGIN_SRC C++
+Rational<int,int> simp1 = Rational<int,int>(10, 5);
+simp1.simplify();
+assert(simp1.numer == 2 && simp1.denom == 1);
+Rational<int, int> simp2 = Rational<int, int>(5, 10);
+simp2.simplify();
+assert(simp2.numer == 1 && simp2.denom == 2);
+Rational<int, int> simp3 = Rational<int, int>(7, 3);
+simp3.simplify();
+assert(simp3.numer == 7 && simp3.denom == 3);
+Rational<int,int> simp4 = Rational<int,int>(4,-2);
+simp4.simplify();
+assert(simp4.numer == -2 && simp4.denom == 1);
+#+END_SRC
+
 *** Rescale denominator
 Set the denominator to a new value, scale the numerator appropriately.
 
@@ -25,9 +65,22 @@ void Rational<T,U>::rescale_denom(U newval)
         scalefactor = denom / newval;
         numer /= scalefactor;
     }
+    denom = newval;
     return;
 }
 #+END_SRC
+
+**** Tests
+#+NAME: test-rational-rescale
+#+BEGIN_SRC C++
+Rational<int,int> rescale_a = Rational<int,int>(4,7);
+rescale_a.rescale_denom(21);
+assert(rescale_a.denom == 21 && rescale_a.numer == 12);
+Rational<int,int> rescale_b = Rational<int,int>(6,15);
+rescale_b.rescale_denom(5);
+assert(rescale_b.denom == 5 && rescale_b.numer == 2);
+#+END_SRC
+
 *** Rational add
 Adds two fractions together, denominator will be the product of the
 denominators of the inputs.
@@ -37,26 +90,69 @@ denominators of the inputs.
 template<typename T, typename U>
 Rational<T,U> Rational<T,U>::operator+(Rational<T,U> const &obj)
 {
-    if (this->denom == obj->denom)
+    if (denom == obj.denom)
     {
-        return Rational(this->numer + obj->numer, this->denom);
+        return Rational(numer + obj.numer, denom);
     }
     else {
-        return Rational(this->numer * obj->denom + this->denom * obj->numer,
-                        this->denom * obj->denom);
+        return Rational(numer * obj.denom + denom * obj.numer,
+                        denom * obj.denom);
     }
 }
 #+END_SRC
 
+**** Tests
+#+NAME: test-rational-add
+#+BEGIN_SRC C++
+Rational<int,int> rat_add_a = Rational<int,int>(1,4);
+Rational<int,int> rat_add_b = Rational<int,int>(2,4);
+Rational<int,int> rat_add_r1 = rat_add_a + rat_add_b;
+assert(rat_add_r1.numer == 3 && rat_add_r1.denom == 4);
+Rational<int,int> rat_add_c = Rational<int,int>(5,7);
+Rational<int,int> rat_add_r2 = rat_add_a + rat_add_c;
+rat_add_r2.simplify();
+assert(rat_add_r2.numer == 27 && rat_add_r2.denom == 28);
+#+END_SRC
+
+*** Rational subtraction
+Subtracts two fractions;
+\( \frac{a}{b} - \frac{c}{d} = \frac{a d - c b}{b d}\)
+
+#+NAME: rational-sub
+#+BEGIN_SRC C++
+template<typename T, typename U>
+Rational<T,U> Rational<T,U>::operator-(Rational<T,U> const &obj)
+{
+    if (denom == obj.denom)
+    {
+        return Rational(numer - obj.numer, denom);
+    }
+    else {
+        return Rational(numer * obj.denom - denom * obj.numer,
+                        denom * obj.denom);
+    }
+}
+#+END_SRC
+
+**** Tests
+#+NAME: test-rational-sub
+#+BEGIN_SRC C++
+Rational<int,int> rat_sub_a = Rational<int,int>(1,4);
+Rational<int,int> rat_sub_b = Rational<int,int>(2,4);
+Rational<int,int> rat_sub_r1 = rat_sub_b - rat_sub_a;
+assert(rat_sub_r1.numer == 1 && rat_sub_r1.denom == 4);
+Rational<int,int> rat_sub_c = Rational<int,int>(5,7);
+Rational<int,int> rat_sub_r2 = rat_sub_a - rat_sub_c;
+rat_sub_r2.simplify();
+assert(rat_sub_r2.numer == 13 && rat_sub_r2.denom == -28);
+#+END_SRC
 *** Library
-#+BEGIN_SRC C++ :tangle rational.h :main no
+#+BEGIN_SRC C++ :noweb yes :tangle rational.h :main no
 template <typename T, typename U>
 class Rational {
-    private:
+    public:
         T numer;
         U denom;
-
-    public:
         Rational(T n, U d);
         T get_numerator(void);
         U get_denominator(void);
@@ -67,10 +163,6 @@ class Rational {
         Rational operator*(Rational const &obj);
         Rational operator/(Rational const &obj);
 };
-#+END_SRC
-
-#+BEGIN_SRC C++ :noweb yes :tangle rational.cpp :main no
-#include "rational.h"
 
 template<typename T, typename U>
 Rational<T, U>::Rational(T n, U d)
@@ -92,6 +184,7 @@ U Rational<T,U>::get_denominator(void)
 }
 
 <<rational-rescale>>
+<<gcd>>
 <<rational-simp>>
 <<rational-add>>
 <<rational-sub>>
@@ -99,6 +192,23 @@ U Rational<T,U>::get_denominator(void)
 <<rational-div>>
 #+END_SRC
 
+#+RESULTS:
+
+*** Tests
+#+BEGIN_SRC C++ :noweb yes :tangle testrational.cpp
+#include "rational.h"
+#include <iostream>
+#include <cassert>
+
+int main()
+{
+    <<test-rational-simp>>
+    <<test-rational-rescale>>
+    <<test-rational-add>>
+    <<test-rational-sub>>
+    return 0;
+}
+#+END_SRC
 ** 2D Vector operations
 *** Vector addition/subtraction
 
@@ -192,7 +302,8 @@ Vec<T> Vec<T>::crs_3d(Vec<T> a)
 }
 #+END_SRC
 
-#+RESULTS: vector-crs
+
+*** Line segment intersection
 
 *** Library
 #+BEGIN_SRC C++ :tangle compgeom.h :main no
@@ -214,7 +325,6 @@ class Vec {
 
 #+BEGIN_SRC C++ :noweb yes :tangle compgeom.cpp :main no
 #include "compgeom.h"
-
 template<typename T>
 Vec<T>::Vec(T arr[], int s)
 {
@@ -263,5 +373,3 @@ int main()
     return 0;
 }
 #+END_SRC
-
-
