@@ -21,6 +21,15 @@ clean:
 	rm -f notebook.html
 	rm -f rational_test
 	rm -f point_test
+
+# Need to re-tangle the org-file after running this
+delete:
+	rm -f *.cpp
+	rm -f *.h
+	rm -f Makefile
+
+empty: clean delete
+
 #+END_SRC
 
 * I/O
@@ -97,19 +106,21 @@ will be the negative value.
 template<typename T, typename U>
 void Rational<T,U>::simplify(void) {
     // Fixes negative denominators.
-    if (this->denom < 0)
+    if (denom < 0)
     {
-        this->numer *= -1;
-        this->denom *= -1;
+        numer *= -1;
+        denom *= -1;
     }
 
     // Simplifies Rational Numbers.
-    int den = std::__gcd(this->numer, this->denom);
+    int den = std::__gcd(numer, denom);
 
-    this->numer /= den;
-    this->denom /= den;
+    numer /= den;
+    denom /= den;
 }
 #+END_SRC
+
+#+RESULTS: rational-simp
 
 **** Test
 #+NAME: test-rational-simp
@@ -239,8 +250,6 @@ class Rational {
         T numer;
         U denom;
         Rational(T n, U d);
-        T get_numerator(void);
-        U get_denominator(void);
         void rescale_denom(U newval);
         void simplify(void);
         Rational operator+(Rational const &obj);
@@ -250,26 +259,9 @@ class Rational {
 };
 
 template<typename T, typename U>
-Rational<T, U>::Rational(T n, U d)
-{
-    this->numer = n;
-    this->denom = d;
-}
-
-template<typename T, typename U>
-T Rational<T,U>::get_numerator(void)
-{
-    return this->numer;
-}
-
-template<typename T, typename U>
-U Rational<T,U>::get_denominator(void)
-{
-    return this->denom;
-}
+Rational<T, U>::Rational(T n, U d) : numer(n), denom(d) {};
 
 <<rational-rescale>>
-<<gcd>>
 <<rational-simp>>
 <<rational-add>>
 <<rational-sub>>
