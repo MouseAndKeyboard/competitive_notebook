@@ -1,5 +1,65 @@
 #+TITLE: Notebook
 
+* I/O
+
+You can still use cin/cout and achieve the same speed as scanf/printf by including the following two lines in your main() function:
+#+BEGIN_SRC C++
+ios_base::sync_with_stdio(false);
+#+END_SRC
+
+tie() is a method which simply guarantees the flushing of std::cout before std::cin accepts an input. This is useful for interactive console programs which require the console to be updated constantly but also slows down the program for large I/O.
+#+BEGIN_SRC C++
+cin.tie(NULL);
+#+END_SRC
+
+** Templates
+
+*** Super fast number input
+#+BEGIN_SRC C++
+void fastscan(int &number)
+{
+    //variable to indicate sign of input number
+    bool negative = false;
+    register int c;
+
+    number = 0;
+
+    // extract current character from buffer
+    c = getchar();
+    if (c=='-')
+    {
+        // number is negative
+        negative = true;
+
+        // extract the next character from the buffer
+        c = getchar();
+    }
+
+    // Keep on extracting characters if they are integers
+    // i.e ASCII Value lies from '0'(48) to '9' (57)
+    for (; (c>47 && c<58); c=getchar())
+        number = number *10 + c - 48;
+
+    // if scanned input has a negative sign, negate the
+    // value of the input number
+    if (negative)
+        number *= -1;
+}
+#+END_SRC
+
+*** Main template
+#+BEGIN_SRC C++
+#include <bits/stdc++.h>
+using namespace std;
+
+int main()
+{
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    return 0;
+}
+#+END_SRC
+
 * Computational Geometry
 ** Rational Number Class
 *** Simplify
@@ -209,6 +269,60 @@ int main()
     return 0;
 }
 #+END_SRC
+
+** Points
+*** Point +-
+
+\( (x_1, y_1) \pm (x_2, y_2) = (x_1 \pm x_2, y_1 \pm y_2) \)
+**** Addition
+#+NAME: point-add
+#+BEGIN_SRC C++
+template <typename T>
+Point<T> Point<T>::operator+(Point<T> const &a)
+{
+    Point<T> res(dim);
+    for (int i = 0; i < dim; ++i)
+    {
+        res.coord[i] = coord[i] + a.coord[i];
+    }
+}
+#+END_SRC
+**** Subtraction
+#+NAME: point-sub
+#+BEGIN_SRC C++
+template <typename T>
+Point<T> Point<T>::operator-(Point<T> const &a)
+{
+    Point<T> res(dim);
+    for (int i = 0; i < dim; ++i)
+    {
+        res.coord[i] = coord[i] - a.coord[i];
+    }
+}
+#+END_SRC
+
+*** Library
+#+BEGIN_SRC C++ :noweb yes :tangle point.h :main no
+template <typename T>
+class Point {
+    public:
+    T* coord;
+    int dim;
+    Point(T *c) : coord(c) {}
+
+        Point<T> operator+(Point<T> const &obj);
+        Point<T> operator-(Point<T> const &obj);
+};
+
+<<point-add>>
+<<point-sub>>
+#+END_SRC
+
+*** Tests
+#+BEGIN_SRC C++ :noweb yes :tangle point_test.cpp :include "point.h"
+<<point-add-sub-test>>
+
+#+END_SRC
 ** 2D Vector operations
 *** Vector addition/subtraction
 
@@ -306,7 +420,7 @@ Vec<T> Vec<T>::crs_3d(Vec<T> a)
 *** Line segment intersection
 
 *** Library
-#+BEGIN_SRC C++ :tangle compgeom.h :main no
+#+BEGIN_SRC C++ :tangle vec.h :main no
 template <typename T>
 class Vec {
     public:
@@ -323,8 +437,8 @@ class Vec {
 };
 #+END_SRC
 
-#+BEGIN_SRC C++ :noweb yes :tangle compgeom.cpp :main no
-#include "compgeom.h"
+#+BEGIN_SRC C++ :noweb yes :tangle vec.cpp :main no
+#include "vec.h"
 template<typename T>
 Vec<T>::Vec(T arr[], int s)
 {
@@ -351,7 +465,7 @@ Vec<T>::Vec(int s)
 #+END_SRC
 
 #+BEGIN_SRC C++ :tangle testing.cpp
-#include "compgeom.h"
+#include "vec.h"
 #include <iostream>
 int main()
 {
