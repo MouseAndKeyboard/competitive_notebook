@@ -1,5 +1,28 @@
 #+TITLE: Notebook
 
+* Meta
+This section is dedicated to information and scripts
+directly related to the notebook itself.
+
+** Makefile
+#+BEGIN_SRC makefile :tangle Makefile
+
+test: rational_test point_test
+	./rational_test
+	./point_test
+
+rational_test: testrational.cpp rational.h
+	g++ -o rational_test testrational.cpp rational.h
+
+point_test: point_test.cpp point.h
+	g++ -o point_test point_test.cpp point.h
+
+clean:
+	rm -f notebook.html
+	rm -f rational_test
+	rm -f point_test
+#+END_SRC
+
 * I/O
 
 You can still use cin/cout and achieve the same speed as scanf/printf by including the following two lines in your main() function:
@@ -63,9 +86,11 @@ int main()
 * Computational Geometry
 ** Rational Number Class
 *** Simplify
-#+NAME: rational-simp
+
 After simplification, if the number is negative, the numerator
 will be the negative value.
+
+#+NAME: rational-simp
 #+BEGIN_SRC C++
 #include <algorithm>
 
@@ -272,34 +297,98 @@ int main()
 
 ** Points
 *** Point +-
-
 \( (x_1, y_1) \pm (x_2, y_2) = (x_1 \pm x_2, y_1 \pm y_2) \)
+
 **** Addition
 #+NAME: point-add
 #+BEGIN_SRC C++
 template <typename T>
-Point<T> Point<T>::operator+(Point<T> const &a)
+Point<T> Point<T>::operator+(Point<T> const &obj)
 {
-    Point<T> res(dim);
+    T ar[dim];
+    Point<T> res(ar, dim);
     for (int i = 0; i < dim; ++i)
     {
-        res.coord[i] = coord[i] + a.coord[i];
+        res.coord[i] = coord[i] + obj->coord[i];
     }
 }
 #+END_SRC
+
+***** TODO Tests
+
 **** Subtraction
 #+NAME: point-sub
 #+BEGIN_SRC C++
 template <typename T>
-Point<T> Point<T>::operator-(Point<T> const &a)
+Point<T> Point<T>::operator-(Point<T> const &obj)
 {
-    Point<T> res(dim);
+    T ar[dim];
+    Point<T> res(ar, dim);
     for (int i = 0; i < dim; ++i)
     {
-        res.coord[i] = coord[i] - a.coord[i];
+        res.coord[i] = coord[i] - obj->coord[i];
     }
 }
 #+END_SRC
+
+***** TODO Tests
+
+*** Distance
+**** Squared Distance
+#+NAME: point-squared-distance
+#+BEGIN_SRC C++
+template <typename T>
+T Point<T>::dist_sq(Point<T> const &obj)
+{
+    T sum = 0;
+    for (int i = 0; i < dim; ++i)
+    {
+        T diff = coord[i] - obj->coord[i];
+        sum += diff * diff;
+    }
+    return sum;
+}
+#+END_SRC
+***** TODO Tests
+
+*** Vector Operations
+**** Dot Product
+
+The dot product between \( \mathbf{x} \) and \( \mathbf{y}\):
+\( \mathbf{x}^\intercal \mathbf{y} = \sum_{i=1}^n \mathbf{x}_i \mathbf{y}_i \)
+
+#+NAME: point-dot
+#+BEGIN_SRC C++
+template<typename T>
+T Point<T>::dot(Point<T> const &obj)
+{
+    T sq_sum;
+    for (int i = 0; i < dim; ++i)
+    {
+        sq_sum += coord[i] * obj->coord[i];
+    }
+    return sq_sum;
+}
+#+END_SRC
+***** TODO Tests
+
+**** Cross Product
+The cross product between \( \mathbf{x} \) and \( \mathbf{y} \)
+
+#+NAME: point-cross
+#+BEGIN_SRC C++
+template <typename T>
+Point<T> Point<T>::cross_3d(Point<T> const &obj)
+{
+    T ar[] = {0, 0, 0};
+    ar[0] = coord[1] * obj->coord[2] - coord[2] * obj->coord[1];
+    ar[1] = coord[2] * obj->coord[0] - coord[0] * obj->coord[2];
+    ar[2] = coord[0] * obj->coord[1] - coord[1] * obj->coord[0];
+
+    return Point<T>(ar, 3);
+}
+#+END_SRC
+***** TODO Tests
 
 *** Library
 #+BEGIN_SRC C++ :noweb yes :tangle point.h :main no
@@ -308,182 +397,25 @@ class Point {
     public:
     T* coord;
     int dim;
-    Point(T *c) : coord(c) {}
+    Point(T *c, int dim) : coord(c), dim(dim) {};
 
         Point<T> operator+(Point<T> const &obj);
         Point<T> operator-(Point<T> const &obj);
+
+        T dist_sq(Point<T> const &obj);
+        T dot(Point<T> const &obj);
+        Point<T> cross_3d(Point<T> const &obj);
 };
 
 <<point-add>>
 <<point-sub>>
+<<point-squared-distance>>
+<<point-dot>>
+<<point-cross>>
 #+END_SRC
 
 *** Tests
 #+BEGIN_SRC C++ :noweb yes :tangle point_test.cpp :include "point.h"
 <<point-add-sub-test>>
 
-#+END_SRC
-** 2D Vector operations
-*** Vector addition/subtraction
-
-\( (x_1, y_1) \pm (x_2, y_2) = (x_1 \pm x_2, y_1 \pm y_2) \)
-
-#+NAME: vector-add
-#+BEGIN_SRC C++
-template <typename T>
-Vec<T> Vec<T>::add(Vec<T> a)
-{
-    Vec<T> res(this.dim);
-    for (int i = 0; i < this->dim; ++i)
-    {
-        res->ary[i] = this->ary[i] + a.ary[i];
-    }
-}
-#+END_SRC
-
-#+NAME: vector-sub
-#+BEGIN_SRC C++
-template <typename T>
-Vec<T> Vec<T>::sub(Vec<T> a)
-{
-    Vec<T> res(this->dim);
-    for (int i = 0; i < this->dim; ++i)
-    {
-        res.ary[i] = this->ary[i] - a.ary[i];
-    }
-}
-#+END_SRC
-
-*** Vector norm/magnitude
-\( |(x_1, y_1)| = \sqrt{ x_1^2 + y_1^2 }\)
-
-Note:
-To minimise floating point operations:
-Simply use \( |(x_1, y_1)|^2 = x_1^2 + y_1^2 \) when possible. If
-you need the exact length, you can take
-the square root at the end.
-
-#+NAME: vector-l2-sq
-#+BEGIN_SRC C++
-template<typename T>
-T Vec<T>::l2_sq(void)
-{
-    T sq_sum;
-    for (int i = 0; i < this->dim; ++i)
-    {
-        sq_sum += this->ary[i] * this->ary[i];
-    }
-    return sq_sum;
-}
-#+END_SRC
-
-#+RESULTS: vector-l2-sq
-
-*** Vector dot product
-The dot product between \( \mathbf{x} \) and \( \mathbf{y}\):
-\( \mathbf{x}^\intercal \mathbf{y} = \sum_{i=1}^n \mathbf{x}_i \mathbf{y}_i \)
-
-#+NAME: vector-dot
-#+BEGIN_SRC C++
-template<typename T>
-T Vec<T>::dot(Vec a)
-{
-    T sq_sum;
-    for (int i = 0; i < this->dim; ++i)
-    {
-        sq_sum += this->ary[i] * a.ary[i];
-    }
-    return sq_sum;
-}
-#+END_SRC
-
-#+RESULTS: vector-dot
-
-*** Vector cross product
-The cross product between \( \mathbf{x} \) and \( \mathbf{y} \)
-
-#+NAME: vector-crs
-#+BEGIN_SRC C++
-template <typename T>
-Vec<T> Vec<T>::crs_3d(Vec<T> a)
-{
-    Vec<T> res = Vec(3);
-    res.ary[0] = this->ary[1] * a.ary[2] - this->ary[2] * a.ary[1];
-    res.ary[1] = this->ary[2] * a.ary[0] - this->ary[0] * a.ary[2];
-    res.ary[2] = this->ary[0] * a.ary[1] - this->ary[1] * a.ary[0];
-
-    return res;
-}
-#+END_SRC
-
-
-*** Line segment intersection
-
-*** Library
-#+BEGIN_SRC C++ :tangle vec.h :main no
-template <typename T>
-class Vec {
-    public:
-        T* ary;
-        int dim;
-
-        Vec(T arr[], int s);
-        Vec(int s);
-        Vec add(Vec a);
-        Vec sub(Vec a);
-        T l2_sq(void); // squared L2 norm
-        T dot(Vec a); // dot product
-        Vec crs_3d(Vec a); // true cross product of two vectors in 3-space
-};
-#+END_SRC
-
-#+BEGIN_SRC C++ :noweb yes :tangle vec.cpp :main no
-#include "vec.h"
-template<typename T>
-Vec<T>::Vec(T arr[], int s)
-{
-    this->ary = new T[s];
-    this->dim = s;
-    for (int i=0; i < s; i++)
-    {
-        this->ary[i] = arr[i];
-    }
-}
-
-template<typename T>
-Vec<T>::Vec(int s)
-{
-    this->ary = new T[s];
-    this->dim = s;
-}
-
-<<vector-add>>
-<<vector-sub>>
-<<vector-l2-sq>>
-<<vector-dot>>
-<<vector-crs>>
-#+END_SRC
-
-#+BEGIN_SRC C++ :tangle testing.cpp
-#include "vec.h"
-#include <iostream>
-int main()
-{
-    float a_elems[3] = { 1.0, 3.5, 1.5 };
-    float b_elems[3] = { -0.5, 1.5, 1.5 };
-
-    Vec<float> a = Vec<float>(a_elems, 3);
-    Vec<float> b = Vec<float>(b_elems, 3);
-
-    Vec<float> x = a.crs_3d(b);
-
-    for (int i = 0; i < 3; i++)
-        {
-            std::cout << x.ary[i] << " ";
-        }
-
-    std::cout << "\n" << x.l2_sq() << "\n";
-
-    return 0;
-}
 #+END_SRC
