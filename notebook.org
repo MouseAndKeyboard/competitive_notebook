@@ -322,7 +322,6 @@ Point<T> Point<T>::operator-(Point<T> const &obj)
     }
 }
 #+END_SRC
-
 ***** TODO Tests
 
 *** Distance
@@ -365,6 +364,7 @@ T Point<T>::dot(Point<T> const &obj)
 ***** TODO Tests
 
 **** Cross Product
+***** 3D cross product
 The cross product between \( \mathbf{x} \) and \( \mathbf{y} \)
 
 #+NAME: point-cross
@@ -380,7 +380,22 @@ Point<T> Point<T>::cross_3d(Point<T> const &obj)
     return Point<T>(ar, 3);
 }
 #+END_SRC
+
+***** 2D pseudo cross product
+\( (a,b) \times (c,d) = ad - bc \)
+Area of parallelogram spanned by the two vectors.
+
+#+NAME: point-p-cross
+#+BEGIN_SRC C++
+template <typename T>
+T Point<T>::cross_2d(Point<T> const &obj)
+{
+    return coord[0] * obj->coord[1] - coord[1] * obj->coord[0];
+}
+#+END_SRC
+
 ***** TODO Tests
+
 
 *** Library
 #+BEGIN_SRC C++ :noweb yes :tangle point.h :main no
@@ -397,6 +412,7 @@ class Point {
         T dist_sq(Point<T> const &obj);
         T dot(Point<T> const &obj);
         Point<T> cross_3d(Point<T> const &obj);
+        T cross_2d(Point<T> const &obj);
 };
 
 <<point-add>>
@@ -404,10 +420,66 @@ class Point {
 <<point-squared-distance>>
 <<point-dot>>
 <<point-cross>>
+<<point-p-cross>>
 #+END_SRC
 
 *** Tests
 #+BEGIN_SRC C++ :noweb yes :tangle point_test.cpp :include "point.h"
 <<point-add-sub-test>>
+
+#+END_SRC
+
+** Lines, Rays, Segments
+A line is defined by:
+1. 2 Points (\(a\) and \(b\)), the line will span through these points
+2. If each end of the line is finite or infinite
+3. If the start/end points are open or closed
+
+*** Line Segment Intersection
+Given two line segments, do they intersect? If so, where?
+
+Edge cases:
+1. Parallel lines
+2. Collinear points
+3. Projective case
+4. Point-segment intersection
+
+#+NAME: line-intersect
+#+BEGIN_SRC C++
+template <typename T>
+bool intersects(Line<T> const &obj)
+{
+    Point<T> r = points.first - points.second;
+    Point<T> s = obj->first - obj->second;
+    if ()
+    (points.first - obj.first)
+}
+#+END_SRC
+
+*** Library
+#+BEGIN_SRC C++ :noweb yes :tangle lines.h :main no :include "point.h"
+using namespace std;
+
+template <typename T>
+class Line {
+    private:
+        pair<Point<T>, Point<T>> points;
+        pair<bool, bool> infinite;
+        pair<bool, bool> open; // specifies if the corresponding point is open or closed
+    public:
+        Line(pair<Point<T>, Point<T>> p, pair<bool,bool> inf, pair<bool, bool> o) : points(p), infinite(inf), open(o) {};
+        bool intersects(Line<T> const &obj);
+        pair<Point<T>, Point<T>> g_points();
+
+};
+
+template <typename T>
+pair<Point<T>, Point<T>> g_points() {
+    return points;
+}
+#+END_SRC
+
+*** Tests
+#+BEGIN_SRC C++ :noweb yes :tangle lines_test.cpp :include "lines.h"
 
 #+END_SRC
